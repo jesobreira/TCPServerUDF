@@ -14,6 +14,8 @@ Global $__TCPServer_MainSocket = -1
 Global $__TCPServer_Sockets[255], $__TCPServer_SocketCache[255]
 Global $__TCPServer_Consoles[255], $__TCPServer_Pars[255]
 
+_TCPServer_SetMaxClients(255) ; default
+
 Func _TCPServer_Start($iPort, $sInterface = '0.0.0.0')
 	If _TCPServer_IsServerActive() Then Return SetError(2, 0, False)
 	$__TCPServer_MainSocket = TCPListen($sInterface, $iPort)
