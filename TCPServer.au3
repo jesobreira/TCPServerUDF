@@ -48,7 +48,7 @@ EndFunc   ;==>_TCPServer_Stop
 
 Func _TCPServer_IsServerActive()
 	Return $__TCPServer_MainSocket <> -1
-EndFunc
+EndFunc   ;==>_TCPServer_IsServerActive
 
 Func _TCPServer_ListClients()
 	;Dim $return[$__TCPServer_Sockets[0] + 1]
@@ -62,12 +62,12 @@ Func _TCPServer_ListClients()
 	Next
 
 	Return $return
-EndFunc
+EndFunc   ;==>_TCPServer_ListClients
 
 Func _TCPServer_Close($iSocket)
 	$conn = _TCPServer_SocketToConnID($iSocket)
 	__TCPServer_KillConnection($conn)
-EndFunc
+EndFunc   ;==>_TCPServer_Close
 
 Func _TCPServer_OnConnect($sFunction)
 	$_TCPServer_OnConnectCallback = $sFunction
@@ -91,7 +91,7 @@ EndFunc   ;==>_TCPServer_SetMaxClients
 
 Func _TCPServer_GetMaxClients()
 	Return $_TCPServer_MaxClients
-EndFunc
+EndFunc   ;==>_TCPServer_GetMaxClients
 
 Func _TCPServer_DebugMode($bMode = True)
 	$_TCPServer_DebugMode = $bMode
@@ -99,7 +99,7 @@ EndFunc   ;==>_TCPServer_DebugMode
 
 Func _TCPServer_AutoTrim($bMode = True)
 	$_TCPServer_AutoTrim = $bMode
-EndFunc
+EndFunc   ;==>_TCPServer_AutoTrim
 
 Func _TCPServer_OnDisconnect($sFunction)
 	$_TCPServer_OnDisconnectCallback = $sFunction
@@ -113,7 +113,7 @@ Func _TCPServer_Broadcast($sData, $iExceptSocket = 0)
 	If $iExceptSocket Then $iExceptSocket = _TCPServer_SocketToConnID($iExceptSocket)
 	For $i = 1 To $__TCPServer_Sockets[0]
 		If $__TCPServer_Sockets[$i] <> 0 And $i <> $iExceptSocket Then
-			TCPSend($__TCPServer_Sockets[$i], $sData & @CRLF)
+			TCPSend($__TCPServer_Sockets[$i], $sData)
 			If $_TCPServer_DebugMode Then __TCPServer_Log("Sent " & StringLeft($sData, 255) & " to socket " & $__TCPServer_Sockets[$i] & "(" & _TCPServer_SocketToIP($__TCPServer_Sockets[$i]) & ")")
 		EndIf
 	Next
@@ -127,7 +127,7 @@ EndFunc   ;==>_TCPServer_Send
 Func _TCPServer_SetParam($iSocket, $sPar)
 	$conn = _TCPServer_SocketToConnID($iSocket)
 	$__TCPServer_Pars[$conn] = $sPar
-EndFunc
+EndFunc   ;==>_TCPServer_SetParam
 
 Func _TCPServer_SocketToIP($iSocket) ; taken from the helpfile
 	Local $sockaddr, $aRet
@@ -145,18 +145,18 @@ Func _TCPServer_SocketToIP($iSocket) ; taken from the helpfile
 EndFunc   ;==>_TCPServer_SocketToIP
 
 Func _TCPServer_BindAppToSocket($iSocket, $sCommand, $sWorkingdir = @WorkingDir)
-	$PID = Run($sCommand, $sWorkingdir, @SW_HIDE, BitOR(0x1,0x2,0x4)) ; $STDIN_CHILD + STDOUT_CHILD + STDERR_CHILD
+	$PID = Run($sCommand, $sWorkingdir, @SW_HIDE, BitOR(0x1, 0x2, 0x4)) ; $STDIN_CHILD + STDOUT_CHILD + STDERR_CHILD
 	$conn = _TCPServer_SocketToConnID($iSocket)
 	$__TCPServer_Consoles[$conn] = $PID
 	If $_TCPServer_DebugMode Then __TCPServer_Log("Opened process " & $PID & " for socket " & $iSocket)
-EndFunc
+EndFunc   ;==>_TCPServer_BindAppToSocket
 
 Func _TCPServer_SendToBound($iSocket, $sData)
 	$conn = _TCPServer_SocketToConnID($iSocket)
 	$PID = $__TCPServer_Consoles[$conn]
 	StdinWrite($PID, $sData & @CRLF)
 	If $_TCPServer_DebugMode Then __TCPServer_Log("Sent command " & $sData & " to process " & $PID & " for socket " & $iSocket)
-EndFunc
+EndFunc   ;==>_TCPServer_SendToBound
 
 Func _TCPServer_UnBindAppToSocket($iSocket)
 	$iSocket = _TCPServer_SocketToConnID($iSocket)
@@ -164,7 +164,7 @@ Func _TCPServer_UnBindAppToSocket($iSocket)
 	$__TCPServer_Consoles[$iSocket] = 0
 	Sleep(300)
 	ProcessClose($PID)
-EndFunc
+EndFunc   ;==>_TCPServer_UnBindAppToSocket
 
 Func _TCPServer_SocketToConnID($iSocket)
 	For $i = 1 To $_TCPServer_MaxClients
@@ -173,11 +173,11 @@ Func _TCPServer_SocketToConnID($iSocket)
 		EndIf
 	Next
 	Return False
-EndFunc
+EndFunc   ;==>_TCPServer_SocketToConnID
 
 Func _TCPServer_ConnIDToSocket($iConn)
 	Return $__TCPServer_Sockets[$iConn]
-EndFunc
+EndFunc   ;==>_TCPServer_ConnIDToSocket
 
 ; Internal use ============================================================
 Func __TCPServer_OnExit()
@@ -194,7 +194,7 @@ Func __TCPServer_Sendstd()
 			EndIf
 		EndIf
 	Next
-EndFunc
+EndFunc   ;==>__TCPServer_Sendstd
 
 Func __TCPServer_Accept()
 	If $__TCPServer_Sockets[0] >= $_TCPServer_MaxClients Then
@@ -229,7 +229,7 @@ Func __TCPServer_KillConnection($iConn)
 	EndIf
 	$__TCPServer_Consoles[$iConn] = 0
 	$__TCPServer_Pars[$iConn] = 0
-EndFunc
+EndFunc   ;==>__TCPServer_KillConnection
 
 Func __TCPServer_Recv()
 	For $i = 1 To $_TCPServer_MaxClients
@@ -247,12 +247,12 @@ Func __TCPServer_Recv()
 				$recv = TCPRecv($__TCPServer_Sockets[$i], 1000000)
 				If @error Then
 					__TCPServer_KillConnection($i)
-					ContinueLoop(2)
+					ContinueLoop (2)
 				EndIf
 				$sData &= $recv
 			Until $recv = ""
 			If $_TCPServer_AutoTrim Then
-				$sData = StringStripWS($sData, 1+2)
+				$sData = StringStripWS($sData, 1 + 2)
 			EndIf
 			If $_TCPServer_DebugMode Then __TCPServer_Log("Client " & _TCPServer_SocketToIP($__TCPServer_Sockets[$i]) & " sent " & StringLeft($sData, 255))
 			Call($_TCPServer_OnReceiveCallback, $__TCPServer_Sockets[$i], _TCPServer_SocketToIP($__TCPServer_Sockets[$i]), $sData, $__TCPServer_Pars[$i])
