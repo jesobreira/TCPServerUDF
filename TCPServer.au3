@@ -113,8 +113,8 @@ Func _TCPServer_Broadcast($sData, $iExceptSocket = 0)
 	If $iExceptSocket Then $iExceptSocket = _TCPServer_SocketToConnID($iExceptSocket)
 	For $i = 1 To $__TCPServer_Sockets[0]
 		If $__TCPServer_Sockets[$i] <> 0 And $i <> $iExceptSocket Then
-			TCPSend($__TCPServer_Sockets[$i], $sData)
-			If $_TCPServer_DebugMode Then __TCPServer_Log("Sent " & $sData & " to socket " & $__TCPServer_Sockets[$i] & "(" & _TCPServer_SocketToIP($__TCPServer_Sockets[$i]) & ")")
+			TCPSend($__TCPServer_Sockets[$i], $sData & @CRLF)
+			If $_TCPServer_DebugMode Then __TCPServer_Log("Sent " & StringLeft($sData, 255) & " to socket " & $__TCPServer_Sockets[$i] & "(" & _TCPServer_SocketToIP($__TCPServer_Sockets[$i]) & ")")
 		EndIf
 	Next
 EndFunc   ;==>_TCPServer_Broadcast
@@ -234,8 +234,9 @@ EndFunc
 Func __TCPServer_Recv()
 	For $i = 1 To $_TCPServer_MaxClients
 		Dim $sData
+		If Not $__TCPServer_Sockets[$i] Then ContinueLoop
 		$recv = TCPRecv($__TCPServer_Sockets[$i], 1000000)
-		If @error = 10054 Then ; Disconnected by user
+		If @error Then
 			__TCPServer_KillConnection($i)
 			ContinueLoop
 		EndIf
@@ -244,12 +245,16 @@ Func __TCPServer_Recv()
 			$sData = $recv
 			Do
 				$recv = TCPRecv($__TCPServer_Sockets[$i], 1000000)
+				If @error Then
+					__TCPServer_KillConnection($i)
+					ContinueLoop(2)
+				EndIf
 				$sData &= $recv
 			Until $recv = ""
 			If $_TCPServer_AutoTrim Then
 				$sData = StringStripWS($sData, 1+2)
 			EndIf
-			If $_TCPServer_DebugMode Then __TCPServer_Log("Client " & _TCPServer_SocketToIP($__TCPServer_Sockets[$i]) & " sent " & $sData)
+			If $_TCPServer_DebugMode Then __TCPServer_Log("Client " & _TCPServer_SocketToIP($__TCPServer_Sockets[$i]) & " sent " & StringLeft($sData, 255))
 			Call($_TCPServer_OnReceiveCallback, $__TCPServer_Sockets[$i], _TCPServer_SocketToIP($__TCPServer_Sockets[$i]), $sData, $__TCPServer_Pars[$i])
 		EndIf
 	Next
